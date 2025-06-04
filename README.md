@@ -1,13 +1,9 @@
-A simple 3d environment created using C++ and the OpenGL API.
+A fully-lit 3d environment created using C++ and the OpenGL API.
 
-![image](https://github.com/user-attachments/assets/1f756fbe-62b0-4632-8a22-be000fe1d172)
+![image](https://github.com/user-attachments/assets/bf291eae-39f0-420b-adf8-b6bf29a26203)
 
 Made by following an online book from https://learnopengl.com/
 
-**Features**:-
 
-1: Free 3D movement in all 6 directions
-
-2: Basic use of shaders using GLSL to draw cubes
 
 
