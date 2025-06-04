@@ -29,13 +29,14 @@
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="FragShader.glsl" />
-    <None Include="VertShader.glsl" />
+    <None Include="CubeShader.frag" />
+    <None Include="CubeShader.vert" />
+    <None Include="LightShader.frag" />
+    <None Include="LightShader.vert" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="container.jpg" />
-    <Image Include="smiley.png" />
-    <Image Include="texture.png" />
+    <Image Include="container2.png" />
+    <Image Include="container2_specular.png" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

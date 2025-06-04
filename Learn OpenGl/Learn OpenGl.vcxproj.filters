@@ -37,17 +37,16 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="VertShader.glsl" />
-    <None Include="FragShader.glsl" />
+    <None Include="CubeShader.frag" />
+    <None Include="CubeShader.vert" />
+    <None Include="LightShader.vert" />
+    <None Include="LightShader.frag" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="texture.png">
+    <Image Include="container2.png">
       <Filter>Resource Files</Filter>
     </Image>
-    <Image Include="container.jpg">
-      <Filter>Resource Files</Filter>
-    </Image>
-    <Image Include="smiley.png">
+    <Image Include="container2_specular.png">
       <Filter>Resource Files</Filter>
     </Image>
   </ItemGroup>
