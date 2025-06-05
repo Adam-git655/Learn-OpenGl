@@ -1,4 +1,8 @@
 #define STB_IMAGE_IMPLEMENTATION
+#include "imgui.h"
+#include "backends/imgui_impl_glfw.h"
+#include "backends/imgui_impl_opengl3.h"
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -15,6 +19,7 @@ void processInput(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xposin, double yposin);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void setMouseCaptured(GLFWwindow* window, bool captured);
 unsigned int loadTexture(const char* path);
 
 //settings
@@ -27,6 +32,8 @@ float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
 bool first_mouse = true;
+bool mouseCaptured = true;
+bool spacePressedLastFrame = false;
 
 float lastx = 400;
 float lasty = 300;
@@ -127,13 +134,6 @@ int main()
 		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
-	glm::vec3 pointLightPositions[] = {
-		glm::vec3(0.7f,  0.2f,  2.0f),
-		glm::vec3(2.3f, -3.3f, -4.0f),
-		glm::vec3(-4.0f,  2.0f, -12.0f),
-		glm::vec3(0.0f,  0.0f, -3.0f)
-	};
-
 	//setup vertex data and buffer(s), configure vertex attributes
 	unsigned int VBO, CubeVAO;
 	glGenBuffers(1, &VBO);
@@ -180,6 +180,61 @@ int main()
 	cubeShader.setInt("material.diffuse", 0); //Set texture unit of diffuse map to 0
 	cubeShader.setInt("material.specular", 1); //Set texture unit of specular map to 1
 
+	IMGUI_CHECKVERSION();
+	ImGui::CreateContext();
+	ImGuiIO& io = ImGui::GetIO(); (void)io;
+	ImGui::StyleColorsDark();
+	ImGui_ImplGlfw_InitForOpenGL(window, true);
+	ImGui_ImplOpenGL3_Init("#version 330");
+
+
+	//Dirlight vars
+	glm::vec3 dirLightDirection = { -0.2f, -1.0f, -0.3f };
+	glm::vec3 dirLightambient = { 0.05f, 0.05f, 0.05f };
+	glm::vec3 dirLightdiffuse = { 0.4f, 0.4f, 0.4f };
+	glm::vec3 dirLightspecular = { 0.5f, 0.5f, 0.5f };
+
+	//Spot light vars
+	glm::vec3 pointLightPositions[] = {
+		glm::vec3(0.7f,  0.2f,  2.0f),
+		glm::vec3(2.3f, -3.3f, -4.0f),
+		glm::vec3(-4.0f,  2.0f, -12.0f),
+		glm::vec3(0.0f,  0.0f, -3.0f)
+	};
+	glm::vec3 pointLightAmbients[] = {
+		glm::vec3(0.05f, 0.05f, 0.05f),
+		glm::vec3(0.05f, 0.05f, 0.05f),
+		glm::vec3(0.05f, 0.05f, 0.05f),
+		glm::vec3(0.05f, 0.05f, 0.05f)
+	};
+	glm::vec3 pointLightDiffuses[] = {
+		glm::vec3(0.8f, 0.8f, 0.8f),
+		glm::vec3(0.8f, 0.8f, 0.8f),
+		glm::vec3(0.8f, 0.8f, 0.8f),
+		glm::vec3(0.8f, 0.8f, 0.8f)
+	};
+	glm::vec3 pointLightSpeculars[] = {
+		glm::vec3(1.0f, 1.0f, 1.0f),
+		glm::vec3(1.0f, 1.0f, 1.0f),
+		glm::vec3(1.0f, 1.0f, 1.0f),
+		glm::vec3(1.0f, 1.0f, 1.0f)
+	};
+	glm::vec3 pointLightSourceCubeColors[] = {
+		glm::vec3(1.0f, 1.0f, 1.0f),
+		glm::vec3(1.0f, 1.0f, 1.0f),
+		glm::vec3(1.0f, 1.0f, 1.0f),
+		glm::vec3(1.0f, 1.0f, 1.0f)
+	};
+
+	//Spot light vars
+	float spotLightCutOffDeg = 12.5f;
+	float spotLightOuterCutOffDeg = 15.0f;
+	glm::vec3 spotLightAmbient = { 0.0f, 0.0f, 0.0f };
+	glm::vec3 spotLightDiffuse = { 1.0f, 1.0f, 1.0f };
+	glm::vec3 spotlightSpecular = { 1.0f, 1.0f, 1.0f };
+
+	glm::vec3 clearColor = { 0.0f, 0.0f, 0.0f };
+
 	//Render Loop
 	while (!glfwWindowShouldClose(window))
 	{
@@ -192,8 +247,12 @@ int main()
 		processInput(window);
 
 		//set backround color
-		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClearColor(clearColor.x, clearColor.y, clearColor.z, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		ImGui_ImplOpenGL3_NewFrame();
+		ImGui_ImplGlfw_NewFrame();
+		ImGui::NewFrame();
 
 		//MAIN CUBE SHADER UNIFORMS
 		cubeShader.use();
@@ -201,7 +260,7 @@ int main()
 		cubeShader.setVec3("viewPos", camera.Position);
 
 		//Dir light uniforms
-		cubeShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+		cubeShader.setVec3("dirLight.direction", dirLightDirection);
 		cubeShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
 		cubeShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
 		cubeShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
@@ -215,22 +274,22 @@ int main()
 			cubeShader.setFloat("pointLights[" + index + "].constant", 1.0f);
 			cubeShader.setFloat("pointLights[" + index + "].linear", 0.09f);
 			cubeShader.setFloat("pointLights[" + index + "].quadratic", 0.032f);
-			cubeShader.setVec3("pointLights[" + index + "].ambient", 0.05f, 0.05f, 0.05f);
-			cubeShader.setVec3("pointLights[" + index + "].diffuse", 0.8f, 0.8f, 0.8f);
-			cubeShader.setVec3("pointLights[" + index + "].specular", 1.0f, 1.0f, 1.0f);
+			cubeShader.setVec3("pointLights[" + index + "].ambient", pointLightAmbients[i]);
+			cubeShader.setVec3("pointLights[" + index + "].diffuse", pointLightDiffuses[i]);
+			cubeShader.setVec3("pointLights[" + index + "].specular", pointLightSpeculars[i]);
 		}
 
 		//Spot Light uniforms
 		cubeShader.setVec3("spotLight.position", camera.Position);
 		cubeShader.setVec3("spotLight.direction", camera.Front);
-		cubeShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-		cubeShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+		cubeShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(spotLightCutOffDeg)));
+		cubeShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(spotLightOuterCutOffDeg)));
 		cubeShader.setFloat("spotLight.constant", 1.0f);
 		cubeShader.setFloat("spotLight.linear", 0.09f);
 		cubeShader.setFloat("spotLight.quadratic", 0.032f);
-		cubeShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-		cubeShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-		cubeShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+		cubeShader.setVec3("spotLight.ambient", spotLightAmbient);
+		cubeShader.setVec3("spotLight.diffuse", spotLightDiffuse);
+		cubeShader.setVec3("spotLight.specular", spotlightSpecular);
 		
 		//bind texture(s)
 		glActiveTexture(GL_TEXTURE0);
@@ -277,15 +336,63 @@ int main()
 			model = glm::translate(model, pointLightPositions[i]);
 			model = glm::scale(model, glm::vec3(0.2f));
 			lightShader.setMat4("model", model);
+			lightShader.setVec3("lightSourceCubeColor", pointLightSourceCubeColors[i]);
 
 			//draw light source
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
 
+		ImGui::Begin("Tools");
+
+		ImGui::ColorEdit3("clear color", &clearColor[0]);
+
+		if (ImGui::CollapsingHeader("Directional Light"))
+		{
+			ImGui::DragFloat3("direction", &dirLightDirection[0], 0.1f);
+			ImGui::ColorEdit3("ambient", &dirLightambient[0]);
+			ImGui::ColorEdit3("diffuse", &dirLightdiffuse[0]);
+			ImGui::ColorEdit3("specualar", &dirLightspecular[0]);
+		}
+		for (int i = 0; i < 4; i++)
+		{
+			std::string name = "Point Light" + std::to_string(i);
+			if (ImGui::CollapsingHeader(name.c_str()))
+			{
+				std::string cubeColorId = "cube color##" + std::to_string(i);
+				std::string positionId = "position##" + std::to_string(i);
+				std::string ambientId = "ambient##" + std::to_string(i);
+				std::string diffuseId = "diffuse##" + std::to_string(i);
+				std::string specularId = "specular##" + std::to_string(i);
+
+				ImGui::ColorEdit3(cubeColorId.c_str(), &pointLightSourceCubeColors[i][0]);
+				ImGui::DragFloat3(positionId.c_str(), &pointLightPositions[i][0], 0.1f);
+				ImGui::ColorEdit3(ambientId.c_str(), &pointLightAmbients[i][0]);
+				ImGui::ColorEdit3(diffuseId.c_str(), &pointLightDiffuses[i][0]);
+				ImGui::ColorEdit3(specularId.c_str(), &pointLightSpeculars[i][0]);
+			}
+		}
+		if (ImGui::CollapsingHeader("Spot Light"))
+		{
+			ImGui::DragFloat("inner radius", &spotLightCutOffDeg);
+			ImGui::DragFloat("outer radius", &spotLightOuterCutOffDeg);
+			ImGui::ColorEdit3("ambient", &spotLightAmbient[0]);
+			ImGui::ColorEdit3("diffuse", &spotLightDiffuse[0]);
+			ImGui::ColorEdit3("specualar", &spotlightSpecular[0]);
+		}
+
+		ImGui::End();
+
+		ImGui::Render();
+		ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
 		//Check and call events and swap the buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
+
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+	ImGui::DestroyContext();
 
 	glDeleteVertexArrays(1, &CubeVAO);
 	glDeleteVertexArrays(1, &LightVAO);
@@ -297,34 +404,52 @@ int main()
 
 void processInput(GLFWwindow* window) 
 {
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	if (mouseCaptured)
 	{
-		camera.ProcessKeyboard(FORWARD, deltaTime);
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		{
+			camera.ProcessKeyboard(FORWARD, deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		{
+			camera.ProcessKeyboard(BACKWARD, deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		{
+			camera.ProcessKeyboard(LEFT, deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		{
+			camera.ProcessKeyboard(RIGHT, deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
+		{
+			camera.ProcessKeyboard(UP, deltaTime);
+		}
+		if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
+		{
+			camera.ProcessKeyboard(DOWN, deltaTime);
+		}
 	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+	
+	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && !spacePressedLastFrame)
 	{
-		camera.ProcessKeyboard(BACKWARD, deltaTime);
+		setMouseCaptured(window, !mouseCaptured);
 	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-	{
-		camera.ProcessKeyboard(LEFT, deltaTime);
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-		camera.ProcessKeyboard(RIGHT, deltaTime);
-	}
-	if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
-	{
-		camera.ProcessKeyboard(UP, deltaTime);
-	}
-	if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
-	{
-		camera.ProcessKeyboard(DOWN, deltaTime);
-	}
+	spacePressedLastFrame = glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS;
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);
 	}
+}
+
+void setMouseCaptured(GLFWwindow* window, bool captured)
+{
+	if (captured)
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	else
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+	mouseCaptured = captured;
 }
 
 void mouse_callback(GLFWwindow* window, double xPosin, double yPosin)
@@ -345,12 +470,14 @@ void mouse_callback(GLFWwindow* window, double xPosin, double yPosin)
 	lastx = xPos;
 	lasty = yPos;
 	
-	camera.ProcessMouseMovement(xoffset, yoffset);
+	if (mouseCaptured)
+		camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
-	camera.ProcessMouseScroll(static_cast<float>(yoffset));
+	if (mouseCaptured)
+		camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
