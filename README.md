@@ -16,10 +16,10 @@ cmake ../
 ```
 
 ## Features
-1. Free 6-directional movement with zooming
-2. Phong-lighting
-3. Specular and Diffuse maps
-4. Directional lights, Point lights, and spot lights
+- Free 6-directional movement with zooming
+- Phong-lighting
+- Specular and Diffuse maps
+- Directional lights, Point lights, and spot lights
 
 
 
