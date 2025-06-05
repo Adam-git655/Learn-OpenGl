@@ -7,10 +7,8 @@ A fully-lit 3d environment created using C++ and the OpenGL API.
 Made by following an online book from https://learnopengl.com/
 
 ## Steps to build
-1)Install CMake
-
-2)Run the following commands in PowerShell/terminal in the folder where CMakeLists.txt is located
-
+1. Install CMake
+2. Run the following commands in PowerShell/terminal in the folder where CMakeLists.txt is located
 ```
 mkdir build
 cd build
