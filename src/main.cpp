@@ -487,8 +487,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 
 unsigned int loadTexture(char const* path)
 {
-	stbi_set_flip_vertically_on_load(true);
-
 	unsigned int textureID;
 	glGenTextures(1, &textureID);
 
