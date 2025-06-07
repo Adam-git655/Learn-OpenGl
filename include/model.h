@@ -4,15 +4,22 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "stb_image.h"
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
-#include <stb_image.h>
-#include <string>
 
 #include "mesh.h"
+#include "ShaderClass.h"
 
-unsigned int TextureFromFile(const char* path, const std::string& directory, bool gamma = false);
+#include <string>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <map>
+#include <vector>
+
+unsigned int TextureFromFile(const char *path, const std::string &directory, bool gamma = false);
 
 class Model
 {

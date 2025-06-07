@@ -19,7 +19,7 @@ void Mesh::SetupMesh()
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); //Bind EBO
 	//Set EBO indices
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size(), indices.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
 	//Tell opengl how to read the data
 	//Vertex Positions
@@ -50,7 +50,7 @@ void Mesh::Draw(Shader& shader)
 		std::string name = textures[i].type;
 		if (name == "texture_diffuse")
 			number = std::to_string(diffuseNr++);
-		else if (name == "texture_specualar")
+		else if (name == "texture_specular")
 			number = std::to_string(specularNr++);
 
 		shader.setInt(("material." + name + number).c_str(), i);
