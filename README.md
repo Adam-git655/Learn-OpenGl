@@ -5,7 +5,7 @@ A fully-lit Model Loader made with C++ and OpenGL
 ![image](https://github.com/user-attachments/assets/4fe6e51a-2857-4b8e-900e-6e981ae8c649)
 
 
-Made by following an online book from https://learnopengl.com/
+Made by following the book at https://learnopengl.com/ by JoeyDeVries
 
 ## Libraries used
 - Glad to load OpenGL functions
