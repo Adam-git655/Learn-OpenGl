@@ -3,7 +3,6 @@
 A fully-lit Model Loader made with C++ and OpenGL
 
 ![image](https://github.com/user-attachments/assets/4fe6e51a-2857-4b8e-900e-6e981ae8c649)
-![image](https://github.com/user-attachments/assets/5ed1bb92-81a6-4f1c-bc30-a0e3608ec5ce)
 
 
 Made by following an online book from https://learnopengl.com/
